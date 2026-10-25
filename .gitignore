@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Office lock/temp files
+~$*.xlsx
+~$*.docx
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editor / tooling
+.claude/
+.vscode/
+.idea/
