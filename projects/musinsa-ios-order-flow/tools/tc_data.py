@@ -514,6 +514,50 @@ TCS = [
      "1. 통화는 원화(₩/원)로 유지되고 도착 예정일 형식이 깨지지 않는다", ""),
 ]
 
+# ---------------------------------------------------------------------------
+# 자동화 구분: API(주문서 계산·주문·취소 API 레벨, 사내 테스트 환경 전제) /
+#              UI(Appium·XCUITest 기반 앱 E2E) / 수동(환경·OS 통합·육안 판단)
+# ---------------------------------------------------------------------------
+AUTO_LEVELS = ["API", "UI", "수동"]
+AUTOMATION = {
+    # 장바구니
+    "TC-CART-001": "UI", "TC-CART-002": "UI", "TC-CART-003": "UI", "TC-CART-004": "UI",
+    "TC-CART-005": "API", "TC-CART-006": "API", "TC-CART-007": "API", "TC-CART-008": "UI",
+    "TC-CART-009": "UI", "TC-CART-010": "API", "TC-CART-011": "UI",
+    # 주문서·금액
+    "TC-ORD-001": "UI", "TC-ORD-002": "API", "TC-ORD-003": "API", "TC-ORD-004": "API",
+    "TC-ORD-005": "API", "TC-ORD-006": "UI", "TC-ORD-007": "UI", "TC-ORD-008": "API",
+    "TC-ORD-009": "UI", "TC-ORD-010": "UI",
+    # 쿠폰
+    "TC-CPN-001": "API", "TC-CPN-002": "API", "TC-CPN-003": "API", "TC-CPN-004": "API",
+    "TC-CPN-005": "API", "TC-CPN-006": "API", "TC-CPN-007": "API", "TC-CPN-008": "API",
+    "TC-CPN-009": "API", "TC-CPN-010": "API",
+    # 적립금
+    "TC-PNT-001": "API", "TC-PNT-002": "API", "TC-PNT-003": "API", "TC-PNT-004": "API",
+    "TC-PNT-005": "API", "TC-PNT-006": "API", "TC-PNT-007": "수동", "TC-PNT-008": "API",
+    "TC-PNT-009": "API", "TC-PNT-010": "API",
+    # 배송지·배송비
+    "TC-SHP-001": "UI", "TC-SHP-002": "UI", "TC-SHP-003": "API", "TC-SHP-004": "API",
+    "TC-SHP-005": "API", "TC-SHP-006": "API", "TC-SHP-007": "UI",
+    # 결제수단
+    "TC-PAY-001": "UI", "TC-PAY-002": "API", "TC-PAY-003": "API", "TC-PAY-004": "API",
+    "TC-PAY-005": "API", "TC-PAY-006": "수동", "TC-PAY-007": "수동", "TC-PAY-008": "수동",
+    "TC-PAY-009": "UI", "TC-PAY-010": "API", "TC-PAY-011": "API", "TC-PAY-012": "수동",
+    # 주문 취소·상태
+    "TC-CNL-001": "API", "TC-CNL-002": "API", "TC-CNL-003": "API", "TC-CNL-004": "API",
+    "TC-CNL-005": "API", "TC-CNL-006": "UI", "TC-CNL-007": "UI",
+    # 모바일 특화
+    "TC-MOB-001": "UI", "TC-MOB-002": "수동", "TC-MOB-003": "수동", "TC-MOB-004": "수동",
+    "TC-MOB-005": "수동", "TC-MOB-006": "UI", "TC-MOB-007": "수동", "TC-MOB-008": "수동",
+    "TC-MOB-009": "수동", "TC-MOB-010": "수동", "TC-MOB-011": "수동",
+    # 보안·입력 검증
+    "TC-SEC-001": "API", "TC-SEC-002": "API", "TC-SEC-003": "API", "TC-SEC-004": "수동",
+    "TC-SEC-005": "API", "TC-SEC-006": "API",
+    # 호환성·접근성
+    "TC-CMP-001": "UI", "TC-CMP-002": "UI", "TC-CMP-003": "수동", "TC-CMP-004": "수동",
+    "TC-CMP-005": "수동", "TC-CMP-006": "수동",
+}
+
 # 테스트 데이터(계정·상품·쿠폰) 준비 목록
 TEST_DATA = [
     ("계정", "M1", "메인 테스트 계정", "등급 할인 대상(실버 이상), 적립금 1만 원 이상, 등급 쿠폰 보유, 무신사페이 등록, 배송지 2개", "대부분의 TC"),

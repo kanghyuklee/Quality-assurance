@@ -47,24 +47,25 @@ wb = Workbook()
 # ============================ 테스트케이스 ============================
 ws = wb.active
 ws.title = "테스트케이스"
-TC_HDR = ["TC ID", "대분류", "중분류", "요구사항 ID", "설계 근거", "실행 구분", "우선순위",
+TC_HDR = ["TC ID", "대분류", "중분류", "요구사항 ID", "설계 근거", "실행 구분", "자동화 구분", "우선순위",
           "사전 조건", "테스트 절차", "테스트 데이터", "기대 결과", "관련 질의",
           "결과", "실측·메모", "결함 ID", "수행일", "수행자", "스크린샷", "비고"]
 hdr(ws, 1, TC_HDR)
-TC_W = [13, 13, 13, 16, 11, 10, 9, 36, 44, 20, 48, 11, 10, 30, 11, 11, 9, 14, 14]
+TC_W = [13, 13, 13, 16, 11, 10, 10, 9, 36, 44, 20, 48, 11, 10, 30, 11, 11, 9, 14, 14]
 widths(ws, TC_W)
-INPUT_COLS = [13, 14, 15, 16, 17, 18]
+INPUT_COLS = [14, 15, 16, 17, 18, 19]
 for r, tc in enumerate(D.TCS, 2):
-    for cidx, v in enumerate(tc, 1):
-        a = CENTER if cidx in (1, 2, 3, 4, 5, 6, 7, 12) else WRAP_TOP
+    vals = list(tc[:6]) + [D.AUTOMATION[tc[0]]] + list(tc[6:])
+    for cidx, v in enumerate(vals, 1):
+        a = CENTER if cidx in (1, 2, 3, 4, 5, 6, 7, 8, 13) else WRAP_TOP
         cell(ws, r, cidx, v, align=a)
     for cidx in INPUT_COLS:
-        cell(ws, r, cidx, None, fill=INPUT_FILL, align=CENTER if cidx != 14 else WRAP_TOP)
-    cell(ws, r, 19, None)
+        cell(ws, r, cidx, None, fill=INPUT_FILL, align=CENTER if cidx != 15 else WRAP_TOP)
+    cell(ws, r, 20, None)
     # 행 높이 추정(줄바꿈·길이 기반)
     lines = 1
-    for cidx, w in [(8, TC_W[7]), (9, TC_W[8]), (11, TC_W[10])]:
-        txt = str(tc[cidx - 1] or "")
+    for cidx, w in [(9, TC_W[8]), (10, TC_W[9]), (12, TC_W[11])]:
+        txt = str(vals[cidx - 1] or "")
         est = sum(max(1, math.ceil(len(seg) * 1.9 / w)) for seg in txt.split("\n"))
         lines = max(lines, est)
     ws.row_dimensions[r].height = min(15 * lines + 4, 300)
@@ -76,16 +77,19 @@ ws.auto_filter.ref = f"A1:{get_column_letter(len(TC_HDR))}{LAST}"
 def dv(ws, formula, rng):
     d = DataValidation(type="list", formula1=formula, allow_blank=True)
     ws.add_data_validation(d); d.add(rng)
-dv(ws, '"Pass,Fail,Blocked,N/A"', f"M2:M{LAST}")
-dv(ws, '"P1,P2,P3"', f"G2:G{LAST}")
+dv(ws, '"Pass,Fail,Blocked,N/A"', f"N2:N{LAST}")
+dv(ws, '"P1,P2,P3"', f"H2:H{LAST}")
 dv(ws, '"요구사항,리스크 기반,추가 검증"', f"E2:E{LAST}")
 dv(ws, '"비결제,실결제,장기"', f"F2:F{LAST}")
-ws.conditional_formatting.add(f"M2:M{LAST}", CellIsRule(operator="equal", formula=['"Pass"'], fill=PatternFill("solid", fgColor="C6EFCE")))
-ws.conditional_formatting.add(f"M2:M{LAST}", CellIsRule(operator="equal", formula=['"Fail"'], fill=PatternFill("solid", fgColor="FFC7CE")))
-ws.conditional_formatting.add(f"M2:M{LAST}", CellIsRule(operator="equal", formula=['"Blocked"'], fill=PatternFill("solid", fgColor="FFEB9C")))
+dv(ws, '"API,UI,수동"', f"G2:G{LAST}")
+ws.conditional_formatting.add(f"N2:N{LAST}", CellIsRule(operator="equal", formula=['"Pass"'], fill=PatternFill("solid", fgColor="C6EFCE")))
+ws.conditional_formatting.add(f"N2:N{LAST}", CellIsRule(operator="equal", formula=['"Fail"'], fill=PatternFill("solid", fgColor="FFC7CE")))
+ws.conditional_formatting.add(f"N2:N{LAST}", CellIsRule(operator="equal", formula=['"Blocked"'], fill=PatternFill("solid", fgColor="FFEB9C")))
 
 T = "'테스트케이스'"
 def rng(col): return f"{T}!${col}$2:${col}${LAST}"
+# 열 매핑: B 대분류, D 요구사항, E 설계근거, F 실행구분, G 자동화, H 우선순위, M 관련질의, N 결과
+C_PRI, C_Q, C_RES, C_AUTO = "H", "M", "N", "G"
 
 # ============================ 요약 ============================
 ws = wb.create_sheet("요약", 0)
@@ -95,7 +99,7 @@ notes = [
     f"- 요구사항 {len(D.REQS)}건(REQ-01~{len(D.REQS)})은 무신사 공개 정책(고객센터 FAQ·이용 안내, {D.DATE} 조회)에서 역도출. 질의사항 {len(D.QUESTIONS)}건(Q01~Q{len(D.QUESTIONS)})은 앱 동작으로 확정하며 기대결과에 'Qn 회신 후 확정' 표기",
     "- 설계 근거: 요구사항(공개 정책에서 직접 도출) / 리스크 기반(정책 외, 금액·주문 상태 영향 큼) / 추가 검증(범위 외 품질 확인)",
     "- 입력: '테스트케이스' 시트 노란 칸. 결과는 Pass/Fail/Blocked/N/A 선택. 집계는 자동 계산",
-    "- 실행 구분: 비결제(결제 승인 전까지) / 실결제(소액 1건, 완료 후 즉시 취소) / 장기(48시간 대기 등). 실결제·장기 TC는 묶어서 수행",
+    "- 실행 구분: 비결제(결제 승인 전까지) / 실결제(소액 1건, 완료 후 즉시 취소) / 장기(48시간 대기 등). 자동화 구분: API / UI / 수동 — 계획서 8장 자동화 전략의 계층 배치",
 ]
 for i, n in enumerate(notes, 2):
     c = ws.cell(row=i, column=1, value=n); c.font = Font(name=FONT, size=9)
@@ -109,10 +113,10 @@ for i, cat in enumerate(D.CATEGORIES):
     cell(ws, r, 1, cat, align=CENTER)
     cell(ws, r, 2, f"=COUNTIF({rng('B')},A{r})", align=CENTER)
     for j, p in enumerate(["P1", "P2", "P3"]):
-        cell(ws, r, 3 + j, f'=COUNTIFS({rng("B")},$A{r},{rng("G")},"{p}")', align=CENTER)
+        cell(ws, r, 3 + j, f'=COUNTIFS({rng("B")},$A{r},{rng(C_PRI)},"{p}")', align=CENTER)
     for j, s in enumerate(["Pass", "Fail", "Blocked"]):
-        cell(ws, r, 6 + j, f'=COUNTIFS({rng("B")},$A{r},{rng("M")},"{s}")', align=CENTER)
-    cell(ws, r, 9, f'=B{r}-F{r}-G{r}-H{r}-COUNTIFS({rng("B")},$A{r},{rng("M")},"N/A")', align=CENTER)
+        cell(ws, r, 6 + j, f'=COUNTIFS({rng("B")},$A{r},{rng(C_RES)},"{s}")', align=CENTER)
+    cell(ws, r, 9, f'=B{r}-F{r}-G{r}-H{r}-COUNTIFS({rng("B")},$A{r},{rng(C_RES)},"N/A")', align=CENTER)
 rt = r0 + 1 + len(D.CATEGORIES)
 cell(ws, rt, 1, "합계", bold=True, fill=TOTAL_FILL, align=CENTER)
 for col in range(2, 10):
@@ -132,7 +136,7 @@ for i, b in enumerate(D.BASIS):
     cell(ws, r, 1, b, align=CENTER)
     cell(ws, r, 2, f"=COUNTIF({rng('E')},A{r})", align=CENTER)
     for j, p in enumerate(["P1", "P2", "P3"]):
-        cell(ws, r, 3 + j, f'=COUNTIFS({rng("E")},$A{r},{rng("G")},"{p}")', align=CENTER)
+        cell(ws, r, 3 + j, f'=COUNTIFS({rng("E")},$A{r},{rng(C_PRI)},"{p}")', align=CENTER)
     cell(ws, r, 6, f"=IF($B${rt}=0,0,B{r}/$B${rt})", align=CENTER, fmt="0.0%")
 
 r2 = r1 + 2 + len(D.BASIS) + 1
@@ -143,10 +147,23 @@ for i, e in enumerate(D.EXEC_TYPES):
     cell(ws, r, 1, e, align=CENTER)
     cell(ws, r, 2, f"=COUNTIF({rng('F')},A{r})", align=CENTER)
     for j, s in enumerate(["Pass", "Fail", "Blocked"]):
-        cell(ws, r, 3 + j, f'=COUNTIFS({rng("F")},$A{r},{rng("M")},"{s}")', align=CENTER)
-    cell(ws, r, 6, f'=B{r}-C{r}-D{r}-E{r}-COUNTIFS({rng("F")},$A{r},{rng("M")},"N/A")', align=CENTER)
+        cell(ws, r, 3 + j, f'=COUNTIFS({rng("F")},$A{r},{rng(C_RES)},"{s}")', align=CENTER)
+    cell(ws, r, 6, f'=B{r}-C{r}-D{r}-E{r}-COUNTIFS({rng("F")},$A{r},{rng(C_RES)},"N/A")', align=CENTER)
 
-r3 = r2 + 2 + len(D.EXEC_TYPES) + 1
+ra = r2 + 2 + len(D.EXEC_TYPES) + 1
+cell(ws, ra, 1, "자동화 구분별 분포(테스트 피라미드)", bold=True)
+hdr(ws, ra + 1, ["자동화 구분", "TC 수", "P1", "P2", "P3", "비율"])
+for i, a in enumerate(D.AUTO_LEVELS):
+    r = ra + 2 + i
+    cell(ws, r, 1, a, align=CENTER)
+    cell(ws, r, 2, f"=COUNTIF({rng(C_AUTO)},A{r})", align=CENTER)
+    for j, p in enumerate(["P1", "P2", "P3"]):
+        cell(ws, r, 3 + j, f'=COUNTIFS({rng(C_AUTO)},$A{r},{rng(C_PRI)},"{p}")', align=CENTER)
+    cell(ws, r, 6, f"=IF($B${rt}=0,0,B{r}/$B${rt})", align=CENTER, fmt="0.0%")
+c = ws.cell(row=ra + 2 + len(D.AUTO_LEVELS), column=1, value="※ API: 주문서 계산·주문·취소 API 레벨(사내 테스트 환경 전제) / UI: Appium(XCUITest) E2E / 수동: 환경·OS 통합·육안 판단. 상세는 계획서 8장")
+c.font = Font(name=FONT, size=9, italic=True)
+
+r3 = ra + 2 + len(D.AUTO_LEVELS) + 2
 cell(ws, r3, 1, "요구사항 커버리지", bold=True)
 hdr(ws, r3 + 1, ["요구사항 ID", "연결 TC 수", "요구사항 기반", "Pass", "Fail", "", "", "", "", "요구사항"])
 ws.merge_cells(start_row=r3 + 1, start_column=6, end_row=r3 + 1, end_column=9)
@@ -155,8 +172,8 @@ for i, (rid, text, src, imp) in enumerate(D.REQS):
     cell(ws, r, 1, rid, align=CENTER)
     cell(ws, r, 2, f'=COUNTIF({rng("D")},"*"&A{r}&"*")', align=CENTER)
     cell(ws, r, 3, f'=COUNTIFS({rng("D")},"*"&A{r}&"*",{rng("E")},"요구사항")', align=CENTER)
-    cell(ws, r, 4, f'=COUNTIFS({rng("D")},"*"&A{r}&"*",{rng("M")},"Pass")', align=CENTER)
-    cell(ws, r, 5, f'=COUNTIFS({rng("D")},"*"&A{r}&"*",{rng("M")},"Fail")', align=CENTER)
+    cell(ws, r, 4, f'=COUNTIFS({rng("D")},"*"&A{r}&"*",{rng(C_RES)},"Pass")', align=CENTER)
+    cell(ws, r, 5, f'=COUNTIFS({rng("D")},"*"&A{r}&"*",{rng(C_RES)},"Fail")', align=CENTER)
     for col in range(6, 10): cell(ws, r, col, None)
     ws.merge_cells(start_row=r, start_column=6, end_row=r, end_column=9)
     cell(ws, r, 10, text)
@@ -168,7 +185,7 @@ hdr(ws, r4 + 1, ["질의 ID", "영향 TC 수", "", "", "", "", "", "", "", "질�
 for i, (qid, q, impact, pre) in enumerate(D.QUESTIONS):
     r = r4 + 2 + i
     cell(ws, r, 1, qid, align=CENTER)
-    cell(ws, r, 2, f'=COUNTIF({rng("L")},"*"&A{r}&"*")', align=CENTER)
+    cell(ws, r, 2, f'=COUNTIF({rng(C_Q)},"*"&A{r}&"*")', align=CENTER)
     for col in range(3, 10): cell(ws, r, col, None)
     ws.merge_cells(start_row=r, start_column=3, end_row=r, end_column=9)
     cell(ws, r, 10, q)
@@ -183,7 +200,7 @@ widths(ws, [7, 55, 22, 40, 10, 34, 45, 11])
 for i, (qid, q, impact, pre) in enumerate(D.QUESTIONS, 2):
     linked = ", ".join(t[0].replace("TC-", "") for t in D.TCS if qid in t[11])
     cell(ws, i, 1, qid, align=CENTER); cell(ws, i, 2, q); cell(ws, i, 3, impact); cell(ws, i, 4, pre)
-    cell(ws, i, 5, f'=COUNTIF({rng("L")},"*"&A{i}&"*")', align=CENTER)
+    cell(ws, i, 5, f'=COUNTIF({rng(C_Q)},"*"&A{i}&"*")', align=CENTER)
     cell(ws, i, 6, linked)
     cell(ws, i, 7, None, fill=INPUT_FILL); cell(ws, i, 8, None, fill=INPUT_FILL, align=CENTER)
     ws.row_dimensions[i].height = 15 * max(2, math.ceil(len(q) * 1.9 / 55)) + 2
@@ -256,6 +273,9 @@ cats = Counter(t[1] for t in D.TCS); pri = Counter(t[6] for t in D.TCS); basis =
 print("TC total:", len(D.TCS), "| last row:", LAST)
 print("by category:", dict(cats)); print("by priority:", dict(pri)); print("by basis:", dict(basis)); print("by exec:", dict(ex))
 ids = [t[0] for t in D.TCS]; assert len(ids) == len(set(ids)), "duplicate TC id"
+assert set(ids) == set(D.AUTOMATION), "automation tag mismatch: " + str(set(ids) ^ set(D.AUTOMATION))
+assert all(v in D.AUTO_LEVELS for v in D.AUTOMATION.values())
+print("by automation:", dict(Counter(D.AUTOMATION.values())))
 for t in D.TCS:
     assert t[1] in D.CATEGORIES and t[4] in D.BASIS and t[5] in D.EXEC_TYPES and t[6] in ("P1", "P2", "P3"), t[0]
 req_cov = {r[0]: sum(1 for t in D.TCS if r[0] in t[3]) for r in D.REQS}

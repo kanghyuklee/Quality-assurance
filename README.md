@@ -6,7 +6,7 @@ QA 엔지니어 이강혁의 테스트 설계·자동화 포트폴리오입니�
 
 | 프로젝트 | 유형 | 대상 | 산출물 | 상태 |
 |---|---|---|---|---|
-| [musinsa-ios-order-flow](projects/musinsa-ios-order-flow/) | 모바일 앱 · 커머스 주문 플로우 테스트 설계 | 무신사 iOS 앱 (장바구니 → 주문서 → 결제 → 취소) | 테스트 계획서(md), 테스트 케이스 90건(xlsx, 자동 집계), 모바일 체크리스트 | 설계 완료 |
+| [musinsa-ios-order-flow](projects/musinsa-ios-order-flow/) | 모바일 앱 · 커머스 주문 플로우 테스트 설계 | 무신사 iOS 앱 (장바구니 → 주문서 → 결제 → 취소) | 테스트 계획서(md, 자동화 전략 포함), 테스트 케이스 90건(xlsx, 자동 집계·자동화 구분), 모바일 체크리스트 | 설계 완료 |
 | [public-api-quality-lab](projects/public-api-quality-lab/) | REST API 테스트 자동화 프레임워크 | Restful-Booker 공개 API | Pytest 기반 프레임워크, CI | Planning |
 
 ## 설계 원칙
